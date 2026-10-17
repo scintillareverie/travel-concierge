@@ -1,1 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Companion</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 350px;
+      width: 90%;
+    }
+
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .error-msg {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MISSION 1: The Lock Screen -->
+  <div id="lock-screen" class="card">
+    <h2>🔒 Welcome Travelers!</h2>
+    <p>Please enter your passcode to access your itinerary.</p>
+    <input type="text" id="passcode-input" placeholder="e.g. BUDI2026">
+    <br>
+    <button onclick="checkPasscode()">Unlock App</button>
+    <p id="error-message" class="error-msg"></p>
+  </div>
+
+  <!-- THE MAIN APP CONTENT (Hidden by default) -->
+  <div id="app-content" class="card hidden">
+    <h2>🎉 Welcome Back!</h2>
+    <p>Your passcode is activated.</p>
+    <p>Your itinerary is ready to view offline!</p>
+    <button onclick="lockApp()" style="background-color: #dc3545;">Lock App</button>
+  </div>
+
+  <script>
+    // MISSION 2: The Checking Logic
+
+    // 1. Check if user unlocked this app in the past
+    window.onload = function() {
+      const savedPasscode = localStorage.getItem("userPasscode");
+      
+      // If a passcode is already saved, automatically show the app!
+      if (savedPasscode === "BUDI2026") {
+        showApp();
+      }
+    };
+
+    // 2. Function when user clicks "Unlock App" button
+    function checkPasscode() {
+      const input = document.getElementById("passcode-input").value.trim();
+      const errorMessage = document.getElementById("error-message");
+
+      // For testing, our accepted passcode is "BUDI2026"
+      if (input === "BUDI2026") {
+        // Save passcode into browser storage (Local Storage)
+        localStorage.setItem("userPasscode", input);
+        errorMessage.innerText = "";
+        showApp();
+      } else {
+        errorMessage.innerText = "Invalid passcode. Please check with your travel agent.";
+      }
+    }
+
+    // Helper function to hide Lock Screen & show App Content
+    function showApp() {
+      document.getElementById("lock-screen").classList.add("hidden");
+      document.getElementById("app-content").classList.remove("hidden");
+    }
+
+    // Function to log out / lock the app again
+    function lockApp() {
+      localStorage.removeItem("userPasscode");
+      location.reload(); // Refresh the page
+    }
+  </script>
+
+</body>
+</html>
