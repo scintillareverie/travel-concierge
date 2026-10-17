@@ -4,125 +4,196 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Travel Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #eff6ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
       display: flex;
       justify-content: center;
-      align-items: center;
+      padding: 20px;
       min-height: 100vh;
-      margin: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
     }
 
     .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
     }
+
+    .header-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    p { font-size: 14px; color: var(--text-muted); }
 
     input {
-      width: 80%;
-      padding: 10px;
-      margin: 15px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      width: 100%;
+      padding: 14px;
+      margin: 16px 0;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
       font-size: 16px;
       text-align: center;
+      outline: none;
     }
+
+    input:focus { border-color: var(--primary); }
 
     button {
-      background-color: #007bff;
+      width: 100%;
+      background-color: var(--primary);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .hidden {
-      display: none;
+    button:hover { opacity: 0.95; }
+
+    .hidden { display: none; }
+    .error-msg { color: #ef4444; font-size: 13px; margin-top: 10px; text-align: center; }
+
+    /* DAY TABS STYLING */
+    .tabs-wrapper {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .tabs-wrapper::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      width: auto;
+      flex-shrink: 0;
     }
 
-    .error-msg {
-      color: red;
-      font-size: 14px;
-      margin-top: 10px;
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
     }
 
-    .itinerary-box {
-      background: #eef2f7;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: left;
-      margin-top: 15px;
-      font-size: 14px;
-      line-height: 1.5;
+    /* ITINERARY ITEM CARDS */
+    .activity-card {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary);
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .time-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .activity-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .activity-desc {
+      font-size: 13px;
+      color: var(--text-muted);
     }
   </style>
 </head>
 <body>
 
-  <!-- LOCK SCREEN -->
-  <div id="lock-screen" class="card">
-    <h2>🔒 Welcome Travelers!</h2>
-    <p>Please enter your passcode to access your itinerary.</p>
-    <input type="text" id="passcode-input" placeholder="e.g. BUDI2026">
-    <br>
-    <button id="unlock-btn" onclick="checkPasscode()">Unlock App</button>
-    <p id="error-message" class="error-msg"></p>
-  </div>
-
-  <!-- APP CONTENT -->
-  <div id="app-content" class="card hidden">
-    <h2>🎉 Welcome, <span id="user-name"></span>!</h2>
-    <p><strong>Destination:</strong> <span id="user-destination"></span></p>
-    <p><small>Valid until: <span id="user-expiry"></span></small></p>
-
-    <div class="itinerary-box">
-      <h3>📍 Your Daily Itinerary</h3>
-      <p id="user-itinerary"></p>
+  <div class="container">
+    <!-- LOCK SCREEN -->
+    <div id="lock-screen" class="card" style="text-align: center;">
+      <span class="header-badge">VIP Travel Pass</span>
+      <h2>Welcome Back</h2>
+      <p>Enter your unique pass code to unlock your custom itinerary.</p>
+      <input type="text" id="passcode-input" placeholder="e.g. BUDI2026">
+      <button id="unlock-btn" onclick="checkPasscode()">Unlock App</button>
+      <p id="error-message" class="error-msg"></p>
     </div>
 
-    <br><br>
-    <button onclick="lockApp()" style="background-color: #dc3545;">Lock App</button>
+    <!-- MAIN APP CONTENT -->
+    <div id="app-content" class="card hidden">
+      <span class="header-badge">Live Trip Pass</span>
+      <h2>Hi, <span id="user-name"></span>! 👋</h2>
+      <p>📍 Destination: <strong id="user-destination" style="color:var(--text);"></strong></p>
+
+      <!-- DYNAMIC TABS -->
+      <div id="tabs-container" class="tabs-wrapper"></div>
+
+      <!-- DYNAMIC CONTENT AREA -->
+      <div id="itinerary-display"></div>
+
+      <br>
+      <button onclick="lockApp()" style="background-color: #f1f5f9; color: #ef4444;">Lock App</button>
+    </div>
   </div>
 
   <script>
-    // 1. YOUR EXACT GOOGLE SHEET ID
     const SHEET_ID = "1WqfyT-q8NfQzR2bfaAsn8dZiwP1BTIwr8reIm_MzP1w";
-    
-    // Direct Google CSV Export URL (No third party needed!)
     const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
-    // 2. Check if user already unlocked on previous visit (Offline first!)
+    let parsedDays = [];
+
     window.onload = function() {
       const savedData = localStorage.getItem("userData");
       if (savedData) {
         const user = JSON.parse(savedData);
-        
-        const today = new Date().toISOString().split('T')[0];
-        if (user.ExpirationDate >= today) {
-          showApp(user);
-        } else {
-          localStorage.removeItem("userData");
-          document.getElementById("error-message").innerText = "Your pass has expired. Please contact us to renew.";
-        }
+        showApp(user);
       }
     };
 
-    // Helper function to split CSV data into readable JSON objects
     function parseCSV(csvText) {
       const lines = csvText.trim().split("\n");
       const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
       
       return lines.slice(1).map(line => {
-        // Regex to split by comma while respecting quotes
         const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         const row = {};
         headers.forEach((header, index) => {
@@ -136,74 +207,122 @@
       });
     }
 
-    // 3. Fetch Google Sheet & Check Passcode
     async function checkPasscode() {
       const input = document.getElementById("passcode-input").value.trim().toUpperCase();
       const errorMessage = document.getElementById("error-message");
       const unlockBtn = document.getElementById("unlock-btn");
 
-      if (!input) {
-        errorMessage.innerText = "Please enter a passcode.";
-        return;
-      }
+      if (!input) return errorMessage.innerText = "Please enter a passcode.";
 
       unlockBtn.innerText = "Checking...";
       unlockBtn.disabled = true;
 
       try {
-        // Fetch raw CSV directly from Google
         const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error("Could not fetch spreadsheet");
-        }
-        
         const csvText = await response.text();
         const rows = parseCSV(csvText);
 
-        // Find matching passcode
         const matchingUser = rows.find(row => row.Passcode && row.Passcode.trim().toUpperCase() === input);
 
         if (matchingUser) {
-          const today = new Date().toISOString().split('T')[0];
-
-          // Expiration check
-          if (matchingUser.ExpirationDate && matchingUser.ExpirationDate < today) {
-            errorMessage.innerText = "This passcode expired on " + matchingUser.ExpirationDate;
-          } else {
-            // Save user data locally for offline use
-            localStorage.setItem("userData", JSON.stringify(matchingUser));
-            errorMessage.innerText = "";
-            showApp(matchingUser);
-          }
+          localStorage.setItem("userData", JSON.stringify(matchingUser));
+          errorMessage.innerText = "";
+          showApp(matchingUser);
         } else {
-          errorMessage.innerText = "Invalid passcode. Please check with your travel agent.";
+          errorMessage.innerText = "Invalid passcode. Please verify with your travel concierge.";
         }
       } catch (error) {
-        console.error(error);
-        errorMessage.innerText = "Unable to connect. Make sure your Google Sheet access is set to 'Anyone with the link'.";
+        errorMessage.innerText = "Network error. Make sure your Google Sheet is set to 'Anyone with link'.";
       } finally {
         unlockBtn.innerText = "Unlock App";
         unlockBtn.disabled = false;
       }
     }
 
-    // Render data on screen
+    // PARSE [Day 1: Title] FORMAT INTO TABS & CARDS
+    function parseItineraryText(rawText) {
+      if (!rawText) return [];
+      
+      const dayBlocks = rawText.split(/\[Day /i).filter(Boolean);
+      return dayBlocks.map((block, index) => {
+        const lines = block.trim().split("\n");
+        const header = lines[0].replace("]", "").trim();
+        const activities = lines.slice(1).map(line => {
+          const parts = line.split("|").map(p => p.trim());
+          return {
+            time: parts[0] || "",
+            title: parts[1] || "Activity",
+            desc: parts[2] || ""
+          };
+        }).filter(a => a.time || a.title);
+
+        return {
+          dayNum: index + 1,
+          title: header,
+          activities: activities
+        };
+      });
+    }
+
     function showApp(user) {
       document.getElementById("user-name").innerText = user.Name || "Traveler";
       document.getElementById("user-destination").innerText = user.Destination || "N/A";
-      document.getElementById("user-expiry").innerText = user.ExpirationDate || "N/A";
-      document.getElementById("user-itinerary").innerText = user.Itinerary || "No itinerary posted yet.";
+
+      parsedDays = parseItineraryText(user.Itinerary);
+      renderTabs();
 
       document.getElementById("lock-screen").classList.add("hidden");
       document.getElementById("app-content").classList.remove("hidden");
     }
 
-    // Lock function
+    function renderTabs() {
+      const tabsContainer = document.getElementById("tabs-container");
+      tabsContainer.innerHTML = "";
+
+      if (parsedDays.length === 0) {
+        document.getElementById("itinerary-display").innerHTML = "<p>No itinerary items found.</p>";
+        return;
+      }
+
+      parsedDays.forEach((day, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
+        btn.innerText = `Day ${day.dayNum}`;
+        btn.onclick = () => selectDay(idx);
+        tabsContainer.appendChild(btn);
+      });
+
+      selectDay(0);
+    }
+
+    function selectDay(dayIndex) {
+      const buttons = document.querySelectorAll(".tab-btn");
+      buttons.forEach((btn, idx) => {
+        btn.classList.toggle("active", idx === dayIndex);
+      });
+
+      const activeDay = parsedDays[dayIndex];
+      const display = document.getElementById("itinerary-display");
+
+      let html = `<h3 style="margin-bottom: 12px; font-size:16px;">${activeDay.title}</h3>`;
+
+      activeDay.activities.forEach(act => {
+        html += `
+          <div class="activity-card">
+            <div class="time-tag">⏰ ${act.time}</div>
+            <div class="activity-title">${act.title}</div>
+            <div class="activity-desc">${act.desc}</div>
+          </div>
+        `;
+      });
+
+      display.innerHTML = html;
+    }
+
     function lockApp() {
       localStorage.removeItem("userData");
       location.reload();
     }
   </script>
-
 </body>
 </html>
