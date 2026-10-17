@@ -11,7 +11,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
 
@@ -21,7 +21,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       text-align: center;
-      max-width: 350px;
+      max-width: 400px;
       width: 90%;
     }
 
@@ -54,67 +54,127 @@
       font-size: 14px;
       margin-top: 10px;
     }
+
+    .itinerary-box {
+      background: #eef2f7;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: left;
+      margin-top: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
 
-  <!-- MISSION 1: The Lock Screen -->
+  <!-- LOCK SCREEN -->
   <div id="lock-screen" class="card">
     <h2>🔒 Welcome Travelers!</h2>
     <p>Please enter your passcode to access your itinerary.</p>
     <input type="text" id="passcode-input" placeholder="e.g. BUDI2026">
     <br>
-    <button onclick="checkPasscode()">Unlock App</button>
+    <button id="unlock-btn" onclick="checkPasscode()">Unlock App</button>
     <p id="error-message" class="error-msg"></p>
   </div>
 
-  <!-- THE MAIN APP CONTENT (Hidden by default) -->
+  <!-- APP CONTENT -->
   <div id="app-content" class="card hidden">
-    <h2>🎉 Welcome Back!</h2>
-    <p>Your passcode is activated.</p>
-    <p>Your itinerary is ready to view offline!</p>
+    <h2>🎉 Welcome, <span id="user-name"></span>!</h2>
+    <p><strong>Destination:</strong> <span id="user-destination"></span></p>
+    <p><small>Valid until: <span id="user-expiry"></span></small></p>
+
+    <div class="itinerary-box">
+      <h3>📍 Your Daily Itinerary</h3>
+      <p id="user-itinerary"></p>
+    </div>
+
+    <br><br>
     <button onclick="lockApp()" style="background-color: #dc3545;">Lock App</button>
   </div>
 
   <script>
-    // MISSION 2: The Checking Logic
+    // ⚠️ REPLACE THIS WITH YOUR REAL GOOGLE SHEET ID!
+    const SHEET_ID = "YOUR_SHEET_ID_HERE";
+    const API_URL = `https://docs.google.com/spreadsheets/d/1WqfyT-q8NfQzR2bfaAsn8dZiwP1BTIwr8reIm_MzP1w/edit?usp=sharing`;
 
-    // 1. Check if user unlocked this app in the past
+    // 1. Check if user already unlocked on previous visit (Offline first!)
     window.onload = function() {
-      const savedPasscode = localStorage.getItem("userPasscode");
-      
-      // If a passcode is already saved, automatically show the app!
-      if (savedPasscode === "BUDI2026") {
-        showApp();
+      const savedData = localStorage.getItem("userData");
+      if (savedData) {
+        const user = JSON.parse(savedData);
+        
+        // Check if cached data is still within expiration date
+        const today = new Date().toISOString().split('T')[0];
+        if (user.ExpirationDate >= today) {
+          showApp(user);
+        } else {
+          localStorage.removeItem("userData");
+          document.getElementById("error-message").innerText = "Your pass has expired. Please contact us to renew.";
+        }
       }
     };
 
-    // 2. Function when user clicks "Unlock App" button
-    function checkPasscode() {
-      const input = document.getElementById("passcode-input").value.trim();
+    // 2. Fetch Google Sheet & Check Passcode
+    async function checkPasscode() {
+      const input = document.getElementById("passcode-input").value.trim().toUpperCase();
       const errorMessage = document.getElementById("error-message");
+      const unlockBtn = document.getElementById("unlock-btn");
 
-      // For testing, our accepted passcode is "BUDI2026"
-      if (input === "BUDI2026") {
-        // Save passcode into browser storage (Local Storage)
-        localStorage.setItem("userPasscode", input);
-        errorMessage.innerText = "";
-        showApp();
-      } else {
-        errorMessage.innerText = "Invalid passcode. Please check with your travel agent.";
+      if (!input) {
+        errorMessage.innerText = "Please enter a passcode.";
+        return;
+      }
+
+      unlockBtn.innerText = "Checking...";
+      unlockBtn.disabled = true;
+
+      try {
+        // Send a request to fetch the Google Sheet data
+        const response = await fetch(API_URL);
+        const rows = await response.json();
+
+        // Find the row that matches the passcode typed by the user
+        const matchingUser = rows.find(row => row.Passcode.trim().toUpperCase() === input);
+
+        if (matchingUser) {
+          const today = new Date().toISOString().split('T')[0];
+
+          // Check if passcode has expired
+          if (matchingUser.ExpirationDate < today) {
+            errorMessage.innerText = "This passcode expired on " + matchingUser.ExpirationDate;
+          } else {
+            // Success! Save user data locally so it works OFFLINE next time
+            localStorage.setItem("userData", JSON.stringify(matchingUser));
+            errorMessage.innerText = "";
+            showApp(matchingUser);
+          }
+        } else {
+          errorMessage.innerText = "Invalid passcode. Please check with your travel agent.";
+        }
+      } catch (error) {
+        errorMessage.innerText = "Unable to connect. Check internet connection.";
+      } finally {
+        unlockBtn.innerText = "Unlock App";
+        unlockBtn.disabled = false;
       }
     }
 
-    // Helper function to hide Lock Screen & show App Content
-    function showApp() {
+    // Helper function to render data and show the main app screen
+    function showApp(user) {
+      document.getElementById("user-name").innerText = user.Name;
+      document.getElementById("user-destination").innerText = user.Destination;
+      document.getElementById("user-expiry").innerText = user.ExpirationDate;
+      document.getElementById("user-itinerary").innerText = user.Itinerary;
+
       document.getElementById("lock-screen").classList.add("hidden");
       document.getElementById("app-content").classList.remove("hidden");
     }
 
-    // Function to log out / lock the app again
+    // Lock/Log out function
     function lockApp() {
-      localStorage.removeItem("userPasscode");
-      location.reload(); // Refresh the page
+      localStorage.removeItem("userData");
+      location.reload();
     }
   </script>
 
